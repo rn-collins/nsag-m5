@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biophilic Civic Infrastructure Readiness Assessment — NSAG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Syne:wght@500;600;700&family=Manrope:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --nsag: #4D45A8; --nsag-light: #E8E5F5;
+    --m: #2E5A28; --m-light: #E9F2E8;
+    --cream: #F6F3EC; --ink: #1C1B1F; --ink-mid: #4A4656; --ink-soft: #8A8497; --white: #FFFFFF;
+    --pioneering: #2E5A28; --emerging: #1B7A68; --developing: #B8842A; --early: #C24A2E;
+    --border: rgba(77,69,168,0.12); --shadow: 0 2px 24px rgba(28,27,31,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Manrope',sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; }
+  .progress-rail { position: fixed; top:0; left:0; right:0; height:3px; background: var(--nsag-light); z-index:100; }
+  .progress-fill { height:100%; background: var(--m); transition: width 0.4s ease; }
+  header { padding: 20px 32px; display:flex; align-items:center; justify-content:space-between; border-bottom: 1px solid var(--border); background: var(--white); }
+  .logo { font-family:'Syne',sans-serif; font-weight:700; font-size:15px; letter-spacing:0.12em; color: var(--nsag); text-transform:uppercase; }
+  .module-badge { font-family:'DM Mono',monospace; font-size:11px; font-weight:500; letter-spacing:0.08em; color: var(--m); background: var(--m-light); padding:4px 10px; border-radius:2px; text-transform:uppercase; }
+  .screen { display:none; flex:1; align-items:center; justify-content:center; padding:48px 24px; min-height:calc(100vh - 61px); }
+  .screen.active { display:flex; }
+  .welcome-card { max-width:640px; width:100%; text-align:center; }
+  .welcome-eyebrow { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.14em; color: var(--m); text-transform:uppercase; margin-bottom:20px; }
+  .welcome-title { font-family:'Cormorant Garamond',serif; font-size:clamp(36px,5vw,52px); font-weight:600; line-height:1.1; color: var(--ink); margin-bottom:24px; }
+  .welcome-title em { font-style:italic; color: var(--nsag); }
+  .welcome-desc { font-size:16px; line-height:1.7; color: var(--ink-mid); margin-bottom:12px; }
+  .welcome-meta { font-family:'DM Mono',monospace; font-size:12px; color: var(--ink-soft); margin-bottom:40px; }
+  .btn-primary { display:inline-block; background: var(--nsag); color: var(--white); font-family:'Syne',sans-serif; font-weight:600; font-size:14px; letter-spacing:0.04em; padding:14px 36px; border:none; cursor:pointer; transition:background 0.2s; border-radius:2px; }
+  .btn-primary:hover { background:#3D3698; }
+  .disclaimer { margin-top:24px; font-size:12px; color: var(--ink-soft); line-height:1.6; }
+  .question-wrap { max-width:680px; width:100%; }
+  .q-meta { display:flex; align-items:center; gap:12px; margin-bottom:32px; }
+  .q-dimension { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.1em; color: var(--m); text-transform:uppercase; }
+  .q-counter { font-family:'DM Mono',monospace; font-size:11px; color: var(--ink-soft); }
+  .q-text { font-family:'Syne',sans-serif; font-size:clamp(18px,2.5vw,22px); font-weight:600; line-height:1.4; color: var(--ink); margin-bottom:32px; padding-left:16px; border-left:3px solid var(--m); }
+  .options { display:flex; flex-direction:column; gap:12px; margin-bottom:40px; }
+  .option { background: var(--white); border:1.5px solid var(--border); border-radius:4px; padding:16px 20px; cursor:pointer; font-size:15px; line-height:1.5; color: var(--ink-mid); transition:border-color 0.2s,background 0.2s,color 0.2s; text-align:left; }
+  .option:hover { border-color: var(--nsag); color: var(--ink); background: var(--nsag-light); }
+  .option.selected { border-color: var(--nsag); background: var(--nsag-light); color: var(--nsag); font-weight:600; }
+  .q-nav { display:flex; justify-content:space-between; align-items:center; }
+  .btn-back { background:none; border:none; font-family:'Manrope',sans-serif; font-size:14px; color: var(--ink-soft); cursor:pointer; padding:10px 0; transition:color 0.2s; }
+  .btn-back:hover { color: var(--ink); }
+  .btn-next { background: var(--nsag); color: var(--white); font-family:'Syne',sans-serif; font-weight:600; font-size:14px; padding:12px 28px; border:none; cursor:pointer; border-radius:2px; transition:background 0.2s,opacity 0.2s; }
+  .btn-next:disabled { opacity:0.35; cursor:not-allowed; }
+  .btn-next:not(:disabled):hover { background:#3D3698; }
+  .calculating-wrap { text-align:center; max-width:480px; }
+  .calc-label { font-family:'DM Mono',monospace; font-size:12px; letter-spacing:0.1em; color: var(--ink-soft); text-transform:uppercase; margin-bottom:24px; }
+  .calc-number { font-family:'Cormorant Garamond',serif; font-size:96px; font-weight:600; color: var(--nsag); line-height:1; margin-bottom:8px; }
+  .calc-bar { width:100%; height:4px; background: var(--nsag-light); border-radius:2px; overflow:hidden; margin-bottom:24px; }
+  .calc-fill { height:100%; background: var(--m); width:0; transition:width 2s ease; }
+  .result-wrap { max-width:680px; width:100%; }
+  .result-header { margin-bottom:40px; padding-bottom:40px; border-bottom:1px solid var(--border); }
+  .result-eyebrow { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.12em; color: var(--ink-soft); text-transform:uppercase; margin-bottom:16px; }
+  .tier-name { font-family:'Cormorant Garamond',serif; font-size:clamp(52px,8vw,80px); font-weight:600; line-height:1; margin-bottom:16px; opacity:0; transform:translateY(12px); transition:opacity 0.6s ease,transform 0.6s ease; }
+  .tier-name.revealed { opacity:1; transform:translateY(0); }
+  .tier-name.pioneering { color: var(--pioneering); }
+  .tier-name.emerging { color: var(--emerging); }
+  .tier-name.developing { color: var(--developing); }
+  .tier-name.early { color: var(--early); }
+  .tier-desc { font-size:16px; line-height:1.7; color: var(--ink-mid); max-width:520px; }
+  .gate-section { background: var(--white); border:1.5px solid var(--border); border-radius:4px; padding:32px; margin-bottom:24px; }
+  .gate-title { font-family:'Syne',sans-serif; font-weight:700; font-size:16px; color: var(--ink); margin-bottom:8px; }
+  .gate-desc { font-size:14px; color: var(--ink-mid); margin-bottom:24px; line-height:1.6; }
+  .gate-form { display:flex; gap:12px; flex-wrap:wrap; }
+  .gate-input { flex:1; min-width:200px; padding:12px 16px; font-family:'Manrope',sans-serif; font-size:14px; border:1.5px solid var(--border); background: var(--cream); color: var(--ink); border-radius:2px; outline:none; transition:border-color 0.2s; }
+  .gate-input:focus { border-color: var(--nsag); }
+  .btn-gate { background: var(--m); color: var(--white); font-family:'Syne',sans-serif; font-weight:600; font-size:14px; padding:12px 24px; border:none; cursor:pointer; border-radius:2px; white-space:nowrap; }
+  .dimensions { display:flex; flex-direction:column; gap:16px; margin-top:24px; }
+  .dimension-row { background: var(--white); border:1px solid var(--border); border-radius:4px; padding:20px 24px; }
+  .dim-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .dim-name { font-family:'Syne',sans-serif; font-weight:600; font-size:13px; color: var(--ink); text-transform:uppercase; letter-spacing:0.05em; }
+  .dim-tier { font-family:'DM Mono',monospace; font-size:11px; font-weight:500; letter-spacing:0.08em; padding:3px 8px; border-radius:2px; }
+  .dim-tier.pioneering { background:#E8F5E6; color: var(--pioneering); }
+  .dim-tier.emerging { background:#E4F3F0; color: var(--emerging); }
+  .dim-tier.developing { background:#FBF3E4; color: var(--developing); }
+  .dim-tier.early { background:#FBE9E6; color: var(--early); }
+  .dim-bar-rail { height:4px; background: var(--nsag-light); border-radius:2px; overflow:hidden; margin-bottom:10px; }
+  .dim-bar-fill { height:100%; border-radius:2px; transition:width 0.8s ease; }
+  .dim-finding { font-size:13px; color: var(--ink-mid); line-height:1.5; }
+  .blurred { filter:blur(6px); pointer-events:none; user-select:none; }
+  .cta-section { margin-top:32px; padding:28px 32px; background: var(--nsag); border-radius:4px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+  .cta-text { color: var(--white); }
+  .cta-text strong { display:block; font-family:'Syne',sans-serif; font-size:15px; margin-bottom:4px; }
+  .cta-text span { font-size:13px; opacity:0.8; }
+  .btn-cta { background: var(--white); color: var(--nsag); font-family:'Syne',sans-serif; font-weight:700; font-size:13px; letter-spacing:0.04em; padding:11px 22px; border:none; border-radius:2px; cursor:pointer; }
+  .success-msg { display:none; background:#E8F5E6; border:1px solid var(--pioneering); border-radius:4px; padding:14px 20px; font-size:14px; color: var(--pioneering); margin-top:12px; }
+  footer { padding:20px 32px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .footer-text { font-size:12px; color: var(--ink-soft); }
+  .footer-link { font-size:12px; color: var(--nsag); text-decoration:none; }
+  .footer-link:hover { text-decoration:underline; }
+  @media (max-width:600px) { header { padding:16px 20px; } .screen { padding:32px 16px; } .gate-form { flex-direction:column; } .cta-section { flex-direction:column; align-items:flex-start; } }
+</style>
+</head>
+<body>
+<div class="progress-rail"><div class="progress-fill" id="progressFill"></div></div>
+<header>
+  <div class="logo">NSAG</div>
+  <div class="module-badge">M5 · Biophilic Civic Infrastructure</div>
+</header>
+<div class="screen active" id="screenWelcome">
+  <div class="welcome-card">
+    <div class="welcome-eyebrow">Neurocognitive Systems Advisory Group</div>
+    <h1 class="welcome-title">Biophilic Civic Infrastructure<br><em>Readiness Assessment</em></h1>
+    <p class="welcome-desc">Civic spaces — courthouses, government offices, community centers — were built for durability, not neuroscience. Research demonstrates that natural light, biophilic elements, and air quality directly affect cognitive performance, stress recovery, and civic trust. This assessment measures your built environment across six evidence-based dimensions.</p>
+    <p class="welcome-meta">6 dimensions · 12 questions · 8 minutes</p>
+    <button class="btn-primary" onclick="startAssessment()">Begin Assessment</button>
+    <p class="disclaimer">Your overall tier is shown immediately at no cost. Full dimension breakdown delivered by email.</p>
+  </div>
+</div>
+<div class="screen" id="screenQuestion">
+  <div class="question-wrap">
+    <div class="q-meta"><span class="q-dimension" id="qDimension"></span><span class="q-counter" id="qCounter"></span></div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="qOptions"></div>
+    <div class="q-nav">
+      <button class="btn-back" id="btnBack" onclick="prevQuestion()">← Back</button>
+      <button class="btn-next" id="btnNext" onclick="nextQuestion()" disabled>Continue →</button>
+    </div>
+  </div>
+</div>
+<div class="screen" id="screenCalculating">
+  <div class="calculating-wrap">
+    <div class="calc-label">Calculating your score</div>
+    <div class="calc-number" id="calcNumber">0</div>
+    <div class="calc-bar"><div class="calc-fill" id="calcFill"></div></div>
+    <div class="calc-label" id="calcStatus">Analyzing your responses...</div>
+  </div>
+</div>
+<div class="screen" id="screenResult">
+  <div class="result-wrap">
+    <div class="result-header">
+      <div class="result-eyebrow">Your organization is</div>
+      <div class="tier-name" id="tierName"></div>
+      <p class="tier-desc" id="tierDesc"></p>
+    </div>
+    <div class="gate-section" id="gateSection">
+      <div class="gate-title">See your full dimension-by-dimension breakdown</div>
+      <div class="gate-desc">Your complete report shows where you score on each dimension with specific findings and recommended next steps.</div>
+      <div class="gate-form">
+        <input type="email" class="gate-input" id="gateEmail" placeholder="Work email address" />
+        <input type="text" class="gate-input" id="gateOrg" placeholder="Organization name" />
+        <button class="btn-gate" onclick="submitGate()">Send My Report</button>
+      </div>
+      <div class="success-msg" id="gateSuccess">Received. We'll follow up within 24 hours with your full dimension report.</div>
+    </div>
+    <div class="dimensions blurred" id="dimensionsSection"></div>
+    <div class="cta-section">
+      <div class="cta-text">
+        <strong>Ready to move up a tier?</strong>
+        <span>NSAG M5 advisory — from $8,500 for a 90-day engagement.</span>
+      </div>
+      <button class="btn-cta" onclick="window.location.href='mailto:collins.ra@northeastern.edu?subject=NSAG M5 Advisory Inquiry'">Talk to an Advisor</button>
+    </div>
+  </div>
+</div>
+<footer>
+  <span class="footer-text">© 2026 RN Collins LLC · Aloha AI Consulting · NSAG Framework</span>
+  <a href="mailto:collins.ra@northeastern.edu" onclick="navigator.clipboard.writeText('collins.ra@northeastern.edu')" class="footer-link">Contact the Architect</a>
+</footer>
+<script>
+const QUESTIONS = [
+  {
+    dimension: "Natural Light",
+    dimKey: "light",
+    text: "Do the primary occupied spaces in your facility receive adequate natural daylight?",
+    options: [
+      { text: "Yes — most workspaces have direct or indirect natural light access", score: 3 },
+      { text: "Partial — some spaces have natural light; others rely on artificial lighting", score: 2 },
+      { text: "Minimal — most spaces rely on artificial lighting; windows are limited", score: 1 },
+      { text: "No — facility has no meaningful natural light in primary occupied spaces", score: 0 }
+    ]
+  },
+  {
+    dimension: "Natural Light",
+    dimKey: "light",
+    text: "Is artificial lighting in your facility circadian-appropriate (temperature-adjustable, glare-reduced, flicker-free)?",
+    options: [
+      { text: "Yes — circadian-appropriate lighting throughout, actively managed", score: 3 },
+      { text: "Partially — some spaces have updated lighting; others have fluorescent", score: 2 },
+      { text: "Fluorescent lighting is standard with no circadian consideration", score: 1 },
+      { text: "No consideration of lighting quality beyond basic illumination", score: 0 }
+    ]
+  },
+  {
+    dimension: "Biophilic Elements",
+    dimKey: "biophilic",
+    text: "Are living plants, natural materials, water features, or natural views present in your primary civic spaces?",
+    options: [
+      { text: "Yes — multiple biophilic elements maintained throughout the facility", score: 3 },
+      { text: "Some — limited biophilic elements in a few spaces", score: 2 },
+      { text: "Minimal — decorative plants only, not maintained or significant", score: 1 },
+      { text: "No biophilic elements", score: 0 }
+    ]
+  },
+  {
+    dimension: "Biophilic Elements",
+    dimKey: "biophilic",
+    text: "Has biophilic design been a formal consideration in any renovation or new design project at your facility in the past five years?",
+    options: [
+      { text: "Yes — biophilic design was a formal requirement in recent renovation", score: 3 },
+      { text: "Considered informally; some elements incorporated", score: 2 },
+      { text: "Discussed but not incorporated in recent projects", score: 1 },
+      { text: "Not considered in any recent renovation or design", score: 0 }
+    ]
+  },
+  {
+    dimension: "Air Quality",
+    dimKey: "air",
+    text: "Is indoor air quality in your facility monitored with CO2, particulate, or VOC sensors?",
+    options: [
+      { text: "Yes — monitored continuously with alerts for threshold exceedances", score: 3 },
+      { text: "Periodic testing conducted; not continuous monitoring", score: 2 },
+      { text: "Annual HVAC inspection only; no real-time monitoring", score: 1 },
+      { text: "Air quality is not monitored", score: 0 }
+    ]
+  },
+  {
+    dimension: "Air Quality",
+    dimKey: "air",
+    text: "Does your HVAC system meet or exceed current ASHRAE ventilation standards?",
+    options: [
+      { text: "Yes — verified within the past two years", score: 3 },
+      { text: "Believed to be compliant; not recently verified", score: 2 },
+      { text: "Last verified more than five years ago", score: 1 },
+      { text: "Compliance status unknown", score: 0 }
+    ]
+  },
+  {
+    dimension: "Acoustic Environment",
+    dimKey: "acoustic",
+    text: "Are primary meeting and working spaces in your facility designed to reduce cognitive-load noise?",
+    options: [
+      { text: "Yes — acoustic treatment, sound masking, or designated quiet spaces are in place", score: 3 },
+      { text: "Partial — some acoustic management exists; significant noise issues remain", score: 2 },
+      { text: "Noise issues are acknowledged but unaddressed", score: 1 },
+      { text: "No acoustic management; noise is a persistent issue in primary spaces", score: 0 }
+    ]
+  },
+  {
+    dimension: "Acoustic Environment",
+    dimKey: "acoustic",
+    text: "Are there designated quiet or low-stimulation spaces available for staff and visitors?",
+    options: [
+      { text: "Yes — designated quiet spaces exist and are actively used", score: 3 },
+      { text: "Informal quiet areas exist but not designated", score: 2 },
+      { text: "Limited options; quiet available only by accident", score: 1 },
+      { text: "No quiet or low-stimulation space available", score: 0 }
+    ]
+  },
+  {
+    dimension: "Sensory Variation",
+    dimKey: "sensory",
+    text: "Does your facility offer sensory variation (different textures, temperatures, light levels) that supports sustained attention and cognitive recovery?",
+    options: [
+      { text: "Yes — deliberate variation built into multiple spaces", score: 3 },
+      { text: "Some variation exists; not deliberately designed", score: 2 },
+      { text: "Minimal variation; spaces are largely uniform in sensory quality", score: 1 },
+      { text: "No sensory variation — all spaces are uniform and cognitively taxing", score: 0 }
+    ]
+  },
+  {
+    dimension: "Sensory Variation",
+    dimKey: "sensory",
+    text: "Are sensory accommodations available for neurodivergent visitors and staff (reduced stimulation options, sensory kits, etc.)?",
+    options: [
+      { text: "Yes — formal sensory accommodation program in place", score: 3 },
+      { text: "Some accommodations available on request", score: 2 },
+      { text: "Aware of need; no formal accommodation", score: 1 },
+      { text: "No sensory accommodations available", score: 0 }
+    ]
+  },
+  {
+    dimension: "Outdoor Access",
+    dimKey: "outdoor",
+    text: "Do staff and visitors have regular access to outdoor spaces or meaningful views of natural environments?",
+    options: [
+      { text: "Yes — outdoor spaces are accessible and encouraged for regular use", score: 3 },
+      { text: "Outdoor access exists but is not integrated into culture or workflow", score: 2 },
+      { text: "Limited outdoor access; available but not actively facilitated", score: 1 },
+      { text: "No meaningful outdoor access or natural views", score: 0 }
+    ]
+  },
+  {
+    dimension: "Outdoor Access",
+    dimKey: "outdoor",
+    text: "Is green space or outdoor restoration time built into the standard workday or operational schedule?",
+    options: [
+      { text: "Yes — structured outdoor/recovery time is built into the workday", score: 3 },
+      { text: "Encouraged but not structured or protected", score: 2 },
+      { text: "Available in theory; rarely used in practice", score: 1 },
+      { text: "Not available or not considered", score: 0 }
+    ]
+  },
+];
+
+const DIM_FINDINGS = {
+  light: {
+    pioneering: 'Natural daylight is maximized across primary spaces, with circadian-appropriate artificial lighting throughout.',
+    emerging: 'Some spaces have natural light and updated lighting; others still rely on unmanaged fluorescent systems.',
+    developing: 'Natural light is limited. Artificial lighting has not been assessed or updated for cognitive health.',
+    early: 'Little to no natural light. Standard fluorescent lighting is in use without circadian consideration.',
+  },
+  biophilic: {
+    pioneering: 'Multiple biophilic elements are maintained throughout — living plants, natural materials, water features, natural views.',
+    emerging: 'Limited biophilic elements present. Recent renovation has incorporated some principles.',
+    developing: 'Minimal biophilic presence — decorative plants that may not be maintained.',
+    early: 'No biophilic elements. The built environment is entirely disconnected from natural systems.',
+  },
+  air: {
+    pioneering: 'Indoor air quality is continuously monitored with public-facing reporting and defined action thresholds.',
+    emerging: 'Periodic testing exists but monitoring is not continuous or public-facing.',
+    developing: 'Annual HVAC inspection only. No real-time awareness of air quality conditions.',
+    early: 'Air quality is not monitored. The cognitive and health impacts of poor indoor air quality are invisible and unaddressed.',
+  },
+  acoustic: {
+    pioneering: 'Acoustic design actively reduces cognitive-load noise. Quiet spaces are available and used.',
+    emerging: 'Some acoustic management exists but significant noise issues remain in primary spaces.',
+    developing: 'Noise is acknowledged but unaddressed. Staff and visitors absorb the cognitive cost.',
+    early: 'No acoustic management. Noise is a persistent cognitive load that reduces the quality of decisions made in these spaces.',
+  },
+  sensory: {
+    pioneering: 'Deliberate sensory variation is designed into multiple spaces, supporting sustained attention and recovery.',
+    emerging: 'Some variation exists but was not deliberately designed.',
+    developing: 'Spaces are largely uniform in sensory quality with minimal variation.',
+    early: 'No sensory variation. All spaces produce the same cognitive load without recovery affordances.',
+  },
+  outdoor: {
+    pioneering: 'Outdoor access is available, actively encouraged, and integrated into work culture.',
+    emerging: 'Outdoor access exists but is not integrated into daily routines.',
+    developing: 'Limited outdoor access, rarely facilitated.',
+    early: 'No meaningful outdoor access or natural views. Recovery from cognitive load cannot occur in this environment.',
+  },
+};
+
+const TIER_INFO = {
+  pioneering: { label: "Pioneering", cssClass: "pioneering", desc: "Your organization has built strong governance infrastructure across multiple dimensions. The work now is to maintain these systems under pressure and close remaining gaps." },
+  emerging: { label: "Emerging", cssClass: "emerging", desc: "Your organization is building in the right direction. Meaningful structures are in place. The remaining gaps are specific and addressable — this is where targeted interventions produce the most measurable improvement." },
+  developing: { label: "Developing", cssClass: "developing", desc: "Your organization has early-stage infrastructure. Some awareness and individual supports exist, but systemic conditions have not yet been addressed. The risk of incidents, liability, and trust erosion is real." },
+  early: { label: "Early Stage", cssClass: "early", desc: "Governance infrastructure for this domain does not yet meaningfully exist in your organization. The path forward starts with a leadership conversation and a formal assessment of what needs to be built first." }
+};
+
+let currentQ = 0, answers = new Array(QUESTIONS.length).fill(null), scores = {};
+
+function startAssessment() {
+  document.getElementById('screenWelcome').classList.remove('active');
+  document.getElementById('screenQuestion').classList.add('active');
+  renderQuestion(0);
+}
+
+function renderQuestion(idx) {
+  const q = QUESTIONS[idx];
+  document.getElementById('qDimension').textContent = q.dimension;
+  document.getElementById('qCounter').textContent = (idx+1) + ' of ' + QUESTIONS.length;
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('btnBack').style.visibility = idx === 0 ? 'hidden' : 'visible';
+  const optDiv = document.getElementById('qOptions');
+  optDiv.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option' + (answers[idx] === i ? ' selected' : '');
+    btn.textContent = opt.text;
+    btn.onclick = () => { answers[idx] = i; document.querySelectorAll('.option').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); document.getElementById('btnNext').disabled = false; };
+    optDiv.appendChild(btn);
+  });
+  document.getElementById('progressFill').style.width = (idx / QUESTIONS.length * 100) + '%';
+  document.getElementById('btnNext').disabled = answers[idx] === null;
+  currentQ = idx;
+}
+
+function nextQuestion() { currentQ < QUESTIONS.length - 1 ? renderQuestion(++currentQ) : showCalculating(); }
+function prevQuestion() { if (currentQ > 0) renderQuestion(--currentQ); }
+
+function getTier(s) { return s >= 80 ? 'pioneering' : s >= 60 ? 'emerging' : s >= 40 ? 'developing' : 'early'; }
+
+function calculateScores() {
+  const dimRaw = {}, dimCount = {};
+  QUESTIONS.forEach((q, i) => {
+    if (!dimRaw[q.dimKey]) { dimRaw[q.dimKey] = 0; dimCount[q.dimKey] = 0; }
+    dimRaw[q.dimKey] += q.options[answers[i]].score;
+    dimCount[q.dimKey]++;
+  });
+  const dimNorm = {};
+  Object.keys(dimRaw).forEach(k => { dimNorm[k] = Math.round((dimRaw[k] / (dimCount[k] * 3)) * 100); });
+  scores = dimNorm;
+  const overall = Math.round(Object.values(dimNorm).reduce((a,b) => a+b, 0) / Object.keys(dimNorm).length);
+  return { overall, dimensions: dimNorm };
+}
+
+function showCalculating() {
+  document.getElementById('screenQuestion').classList.remove('active');
+  document.getElementById('screenCalculating').classList.add('active');
+  document.getElementById('progressFill').style.width = '100%';
+  const final = calculateScores();
+  let count = 0;
+  const ci = setInterval(() => { count = Math.min(count + 2, final.overall); document.getElementById('calcNumber').textContent = count; if (count >= final.overall) clearInterval(ci); }, 30);
+  document.getElementById('calcFill').style.width = final.overall + '%';
+  setTimeout(() => showResults(final), 2800);
+}
+
+function showResults(final) {
+  document.getElementById('screenCalculating').classList.remove('active');
+  document.getElementById('screenResult').classList.add('active');
+  const tier = getTier(final.overall), info = TIER_INFO[tier];
+  const el = document.getElementById('tierName');
+  el.textContent = info.label; el.className = 'tier-name ' + info.cssClass;
+  setTimeout(() => el.classList.add('revealed'), 100);
+  document.getElementById('tierDesc').textContent = info.desc;
+  renderDimensions(final.dimensions);
+}
+
+function renderDimensions(dimNorm) {
+  const colors = { pioneering: '#2E5A28', emerging: '#1B7A68', developing: '#B8842A', early: '#C24A2E' };
+  const dimLabels = {'light': 'Natural Light', 'biophilic': 'Biophilic Elements', 'air': 'Air Quality', 'acoustic': 'Acoustic Environment', 'sensory': 'Sensory Variation', 'outdoor': 'Outdoor Access'};
+  const container = document.getElementById('dimensionsSection');
+  container.innerHTML = '';
+  Object.keys(dimNorm).forEach(key => {
+    const score = dimNorm[key], tier = getTier(score), label = dimLabels[key] || key;
+    const finding = DIM_FINDINGS[key] ? DIM_FINDINGS[key][tier] : 'Score: ' + score + '/100';
+    container.innerHTML += `<div class="dimension-row"><div class="dim-header"><span class="dim-name">${label}</span><span class="dim-tier ${tier}">${tier === 'early' ? 'Early Stage' : tier.charAt(0).toUpperCase() + tier.slice(1)}</span></div><div class="dim-bar-rail"><div class="dim-bar-fill" style="width:${score}%;background:${colors[tier]}"></div></div><p class="dim-finding">${finding}</p></div>`;
+  });
+
+}
+function submitGate() {
+  const email = document.getElementById('gateEmail').value;
+  if (!email || !email.includes('@')) { document.getElementById('gateEmail').focus(); return; }
+  const org = document.getElementById('gateOrg').value;
+  fetch('https://nsag-api.vercel.app/api/lead', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, org, source: 'nsag-m5', module: 'M5', tier: getTier(Object.values(scores).reduce((a,b)=>a+b,0)/Object.keys(scores).length), scores, timestamp: new Date().toISOString() })
+  }).catch(() => {});
+  document.getElementById('gateSuccess').style.display = 'block';
+  document.getElementById('dimensionsSection').classList.remove('blurred');
+  document.getElementById('gateSection').style.opacity = '0.5';
+  document.getElementById('gateSection').style.pointerEvents = 'none';
+}
+</script>
+</body>
+</html>
