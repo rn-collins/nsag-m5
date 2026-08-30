@@ -1,6 +1,6 @@
-# NSAG M5 — Cybersecurity
+# NSAG M5 — Biophilic Civic Infrastructure
 
-Retired NSAG prototype module covering Cybersecurity.
+Retired standalone deployment of NSAG module M5, Biophilic Civic Infrastructure (Civic & Built Environment). The module's canonical page is https://nsag-site.vercel.app/m5.
 
 **Live:** https://nsag-m5.vercel.app
 
@@ -10,7 +10,7 @@ This prototype has been retired. The deployment remains online as a record; it i
 
 ## Repository contents
 
-`index.html`, `vercel.json`
+`index.html`, `vercel.json`, `og.png`, `favicon.svg`, `apple-touch-icon.png`
 
 ## Local development
 
